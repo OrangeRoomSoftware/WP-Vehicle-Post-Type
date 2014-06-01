@@ -97,6 +97,7 @@ function create_vehicle_post_type() {
     'labels' => $labels,
     'public' => true,
     'publicly_queryable' => true,
+    'exclude_from_search' => true,
     'show_ui' => true,
     'show_in_menu' => true,
     'query_var' => true,
@@ -164,7 +165,7 @@ require_once ( VEHICLE_PLUGIN_DIR . '/plugin-import.php' );
 */
 if ( !is_admin() ) add_filter( 'posts_clauses', 'ors_vehicle_query' );
 function ors_vehicle_query($clauses) {
-  global $wpdb, $ors_vehicle_cookies, $wp_query;
+  global $wpdb, $ors_vehicle_search, $wp_query;
 
   if ( !strstr($clauses['where'], 'vehicle') or is_single() ) return $clauses;
 
@@ -188,23 +189,23 @@ function ors_vehicle_query($clauses) {
     $clauses['having'][] = "lower(vehicle_category) like '%" . str_replace('-', ' ', urldecode($wp_query->query_vars['vehicle_category'])) . "%'";
   }
 
-  if ( isset($ors_vehicle_cookies['text_search']) and $ors_vehicle_cookies['text_search'] != '' ) {
-    $clauses['having']['textsearch']  = "(make like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or post_title like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or post_content like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or model like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or engine like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or transmission like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or exterior_color like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or interior_color like '%{$ors_vehicle_cookies['text_search']}%'";
-    $clauses['having']['textsearch'] .= " or options like '%{$ors_vehicle_cookies['text_search']}%'";
+  if ( isset($ors_vehicle_search['text_search']) and $ors_vehicle_search['text_search'] != '' ) {
+    $clauses['having']['textsearch']  = "(make like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or post_title like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or post_content like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or model like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or engine like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or transmission like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or exterior_color like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or interior_color like '%{$ors_vehicle_search['text_search']}%'";
+    $clauses['having']['textsearch'] .= " or options like '%{$ors_vehicle_search['text_search']}%'";
     $clauses['having']['textsearch'] .= ")";
   }
 
   $search_params = array('vehicle_type');
   foreach ($search_params as $param) {
-    if ( isset($ors_vehicle_cookies[$param]) and $ors_vehicle_cookies[$param] != 'All' and $ors_vehicle_cookies[$param] != '' ) {
-      $clauses['having'][] = "$param = '$ors_vehicle_cookies[$param]'";
+    if ( isset($ors_vehicle_search[$param]) and $ors_vehicle_search[$param] != 'All' and $ors_vehicle_search[$param] != '' ) {
+      $clauses['having'][] = "$param = '$ors_vehicle_search[$param]'";
     }
   }
   if ( !empty($clauses['having']) ) {
@@ -215,8 +216,8 @@ function ors_vehicle_query($clauses) {
 
   $order_params = array('price' => 'price_near', 'mileage' => 'mileage_near');
   foreach ($order_params as $field => $param) {
-    if ( isset($ors_vehicle_cookies[$param]) and $ors_vehicle_cookies[$param] != '' ) {
-      $clauses['orderby'] .= "ABS({$ors_vehicle_cookies[$param]} - $field)";
+    if ( isset($ors_vehicle_search[$param]) and $ors_vehicle_search[$param] != '' ) {
+      $clauses['orderby'] .= "ABS({$ors_vehicle_search[$param]} - $field)";
     }
   }
 
@@ -229,22 +230,17 @@ function ors_vehicle_query($clauses) {
 }
 
 /**
- * Cookies to save search params
+ * Save search params
  */
 add_action( 'init', 'ors_vehicle_set_cookies');
 function ors_vehicle_set_cookies() {
-  global $ors_vehicle_cookies;
+  global $ors_vehicle_search;
   $search_params = array('price_near', 'mileage_near', 'vehicle_type', 'exterior_color', 'text_search');
 
   foreach ($search_params as $param) {
-    if ( isset($_POST[$param]) ) {
-      if ( $_POST['clear'] == 'Clear' ) $_POST[$param] = '';
-      $ors_vehicle_cookies[$param] = $_POST[$param];
-      setcookie($param, $_POST[$param], time() + 3600, COOKIEPATH, COOKIE_DOMAIN, false);
-    }
-
-    elseif ( isset($_COOKIE[$param]) ) {
-      $ors_vehicle_cookies[$param] = $_COOKIE[$param];
+    if ( isset($_GET[$param]) ) {
+      if ( $_GET['clear'] == 'Clear' ) $_GET[$param] = '';
+      $ors_vehicle_search[$param] = $_GET[$param];
     }
   }
 }
@@ -291,20 +287,20 @@ function ors_vehicle_search_box() {
     return;
   }
 
-  global $ors_vehicle_cookies;
+  global $ors_vehicle_search;
   $vehicle_types = explode('|', get_option('ors-vehicle-types'));
   ?>
   <div id='ors-vehicle-search-box'>
     <form method="POST">
       Type <select id="vehicle_type" type="text" name="vehicle_type">
-        <option <?php echo $ors_vehicle_cookies['vehicle_type'] == 'All' ? 'selected' : ''; ?>>All</option>
+        <option <?php echo $ors_vehicle_search['vehicle_type'] == 'All' ? 'selected' : ''; ?>>All</option>
         <?php foreach ( $vehicle_types as $type ) { ?>
-        <option <?php echo $ors_vehicle_cookies['vehicle_type'] == $type ? 'selected' : ''; ?>><?php echo $type; ?></option>
+        <option <?php echo $ors_vehicle_search['vehicle_type'] == $type ? 'selected' : ''; ?>><?php echo $type; ?></option>
         <?php } ?>
       </select>
-      Price Near <input id="price_near" type="text" name="price_near" size=6 value="<?php echo $ors_vehicle_cookies['price_near'] ?>">
-      Mileage Near <input id="mileage_near" type="text" name="mileage_near" size=6 value="<?php echo $ors_vehicle_cookies['mileage_near'] ?>">
-      Text <input id="text_search" type="text" name="text_search" size=30 value="<?php echo $ors_vehicle_cookies['text_search'] ?>">
+      Price Near <input id="price_near" type="text" name="price_near" size=6 value="<?php echo $ors_vehicle_search['price_near'] ?>">
+      Mileage Near <input id="mileage_near" type="text" name="mileage_near" size=6 value="<?php echo $ors_vehicle_search['mileage_near'] ?>">
+      Text <input id="text_search" type="text" name="text_search" size=30 value="<?php echo $ors_vehicle_search['text_search'] ?>">
       <input type="hidden" name="post_type" value="vehicle">
       <input type="submit" name="submit" value="Search">
       <input type="submit" name="clear" value="Clear">
@@ -378,7 +374,7 @@ function vehicle_content_filter($content) {
 
   $options = array_filter(explode('|', $custom['options']), 'strlen');
 
-  $output  = get_option('ors-vehicle-gallery-shortcode') . '<br/>';
+  $output  = "<div class='vehicle-detail'>";
   $output .= $content;
   $output .= 'Vehicle Details:';
   $output .= "<ul class='meta'>";
@@ -421,5 +417,6 @@ function vehicle_content_filter($content) {
     $output .= '</div>';
   }
 
+  $output .= "</div>";
   return $output;
 }
