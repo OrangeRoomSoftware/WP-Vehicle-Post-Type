@@ -33,13 +33,13 @@ function ors_vehicle_template_stylesheets() {
 }
 
 # Admin Stylesheet
-add_action('admin_print_styles', 'ors_vehicle_plugin_admin_stylesheets', 6);
+add_action('admin_print_styles', 'ors_vehicle_plugin_admin_stylesheets', 10);
 function ors_vehicle_plugin_admin_stylesheets() {
   wp_enqueue_style('vehicle-vehicle-admin-style', VEHICLE_PLUGIN_URL . "/admin-style.css", 'ors-admin', null, 'all');
 }
 
 # Admin Javascript
-add_action('admin_print_scripts', 'ors_vehicle_plugin_admin_script', 5);
+add_action('admin_print_scripts', 'ors_vehicle_plugin_admin_script', 10);
 function ors_vehicle_plugin_admin_script() {
   wp_register_script( 'ors_vehicle_plugin_admin_script', VEHICLE_PLUGIN_URL . "/admin-script.js", 'jquery', time() );
   wp_enqueue_script('ors_vehicle_plugin_admin_script');
@@ -230,18 +230,53 @@ function ors_vehicle_query($clauses) {
 }
 
 /**
- * Save search params
+ * Cookies to save search params
  */
 add_action( 'init', 'ors_vehicle_set_cookies');
 function ors_vehicle_set_cookies() {
   global $ors_vehicle_search;
-  $search_params = array('price_near', 'mileage_near', 'vehicle_type', 'exterior_color', 'text_search');
+  $search_params = array(
+    'price_near',
+    'mileage_near',
+    'vehicle_type',
+    'exterior_color',
+    'text_search'
+  );
 
   foreach ($search_params as $param) {
     if ( isset($_POST[$param]) ) {
       if ( $_POST['clear'] == 'Clear' ) $_POST[$param] = '';
       $ors_vehicle_search[$param] = $_POST[$param];
+      setcookie(
+        $param,
+        $_POST[$param], time() + 600, COOKIEPATH, COOKIE_DOMAIN, false
+      );
     }
+
+    elseif ( isset($_COOKIE[$param]) ) {
+      $ors_vehicle_search[$param] = $_COOKIE[$param];
+    }
+  }
+}
+
+/*
+ * Fix 404 pages
+ */
+add_action( 'template_redirect', 'ors_vehicle_404_fix', 0 );
+function ors_vehicle_404_fix() {
+  global $ors_vehicle_search;
+  $search_params = array(
+    'price_near',
+    'mileage_near',
+    'vehicle_type',
+    'exterior_color',
+    'text_search'
+  );
+  foreach ($search_params as $param) {
+    setcookie(
+      $param,
+      '', time() + 600, COOKIEPATH, COOKIE_DOMAIN, false
+    );
   }
 }
 
