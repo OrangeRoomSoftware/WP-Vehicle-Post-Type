@@ -5,10 +5,10 @@
   margin-bottom: 5px;
 }
 .vehicle header {
-  border-bottom: solid 1px #333;
   padding: 0px;
-  margin: 0px;
+  margin: 0px !important;
   background: #eee;
+  border-bottom: solid 1px #333;
   border-radius: 6px 6px 0 0;
 }
 .vehicle header h2, .vehicle header h2 a {
@@ -21,8 +21,9 @@
 .vehicle img {
   width: 150px;
   float: left;
-  margin: 0 5px 0px 0px;
-  border-right: solid 1px black;
+  margin: 0 5px 0px 0px !important;
+  border: none !important;
+  border-right: solid 1px black !important;
 }
 .vehicle .price {
   display: inline-block;
