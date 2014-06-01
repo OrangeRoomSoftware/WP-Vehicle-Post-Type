@@ -2,7 +2,7 @@
 /*
 Plugin Name: Vehicle Post Type
 Plugin URI: https://github.com/orangeroomsoftware/WP-Vehicle-Post-Type
-Version: 1.0
+Version: 1.5
 Author: <a href="http://www.orangeroomsoftware.com/">Orange Room Software</a>
 Description: A post type for Vehicles
 */
@@ -238,9 +238,9 @@ function ors_vehicle_set_cookies() {
   $search_params = array('price_near', 'mileage_near', 'vehicle_type', 'exterior_color', 'text_search');
 
   foreach ($search_params as $param) {
-    if ( isset($_GET[$param]) ) {
-      if ( $_GET['clear'] == 'Clear' ) $_GET[$param] = '';
-      $ors_vehicle_search[$param] = $_GET[$param];
+    if ( isset($_POST[$param]) ) {
+      if ( $_POST['clear'] == 'Clear' ) $_POST[$param] = '';
+      $ors_vehicle_search[$param] = $_POST[$param];
     }
   }
 }
