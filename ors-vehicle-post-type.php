@@ -249,7 +249,7 @@ function ors_vehicle_set_cookies() {
       $ors_vehicle_search[$param] = $_POST[$param];
       setcookie(
         $param,
-        $_POST[$param], time() + 600, COOKIEPATH, COOKIE_DOMAIN, false
+        $_POST[$param], time() + 3600, COOKIEPATH, COOKIE_DOMAIN, false
       );
     }
 
@@ -259,24 +259,35 @@ function ors_vehicle_set_cookies() {
   }
 }
 
+function get_current_url() {
+  return $_SERVER["REQUEST_URI"];
+}
+
 /*
  * Fix 404 pages
  */
 add_action( 'template_redirect', 'ors_vehicle_404_fix', 0 );
 function ors_vehicle_404_fix() {
   global $ors_vehicle_search;
-  $search_params = array(
-    'price_near',
-    'mileage_near',
-    'vehicle_type',
-    'exterior_color',
-    'text_search'
-  );
-  foreach ($search_params as $param) {
-    setcookie(
-      $param,
-      '', time() + 600, COOKIEPATH, COOKIE_DOMAIN, false
+
+  if ( !have_posts() && strstr(get_current_url(), 'vehicles') ) {
+    $search_params = array(
+      'price_near',
+      'mileage_near',
+      'vehicle_type',
+      'exterior_color',
+      'text_search'
     );
+
+    foreach ($search_params as $param) {
+      setcookie(
+        $param,
+        null, -1, COOKIEPATH, COOKIE_DOMAIN, false
+      );
+    }
+
+    wp_redirect( "/vehicles/?nf=1" );
+    exit;
   }
 }
 
@@ -342,6 +353,11 @@ function ors_vehicle_search_box() {
     </form>
   </div>
   <?php
+  if ($_GET['nf'] == 1) {
+    ?>
+    <div class="not-found">No vehicles found. Your search was reset.</div>
+    <?php
+  }
 }
 
 /*

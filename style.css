@@ -137,3 +137,10 @@ a.back-button {
   background: #eee;
   color: black;
 }
+.not-found {
+  border: solid 1px red;
+  border-radius: 5px;
+  text-align: center;
+  margin: 5px 0;
+  color: red;
+}
