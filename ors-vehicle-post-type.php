@@ -259,8 +259,13 @@ function ors_vehicle_set_cookies() {
   }
 }
 
-function get_current_url() {
-  return $_SERVER["REQUEST_URI"];
+/*
+ * Get the current URL
+ */
+if ( !function_exists( 'get_current_url' ) ) {
+  function get_current_url() {
+    return $_SERVER["REQUEST_URI"];
+  }
 }
 
 /*
@@ -426,6 +431,7 @@ function vehicle_content_filter($content) {
   $options = array_filter(explode('|', $custom['options']), 'strlen');
 
   $output  = "<div class='vehicle-detail'>";
+  $output .= get_option('ors-vehicle-gallery-shortcode') . '<br/>';
   $output .= $content;
   $output .= 'Vehicle Details:';
   $output .= "<ul class='meta'>";
