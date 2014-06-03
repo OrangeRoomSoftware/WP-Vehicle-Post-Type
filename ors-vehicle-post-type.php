@@ -430,7 +430,7 @@ function vehicle_content_filter($content) {
 
   $options = array_filter(explode('|', $custom['options']), 'strlen');
 
-  $output  = get_option('ors-vehicle-gallery-shortcode') . '<br/>';
+  $output  = get_option('ors-vehicle-gallery-shortcode');
   $output .= $content;
   $output .= 'Vehicle Details:';
   $output .= "<ul class='meta'>";

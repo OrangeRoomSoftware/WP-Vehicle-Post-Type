@@ -100,10 +100,10 @@
   margin: 0;
 }
 .single .vehicle img {
-  border-bottom: solid 1px black;
+  border: solid 1px black;
 }
-.single .vehicle .vehicle-detail {
-  margin-left: 155px;
+.single .vehicle section {
+  padding: 10px;
 }
 .single .vehicle .options ul {
   display: block;
