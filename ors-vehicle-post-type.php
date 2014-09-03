@@ -105,7 +105,7 @@ function create_vehicle_post_type() {
     'has_archive' => true,
     'hierarchical' => false,
     'menu_position' => 6,
-    'supports' => array('title', 'excerpt', 'gallery', 'thumbnail', 'editor', 'tags'),
+    'supports' => array('title', 'excerpt', 'gallery', 'thumbnail', 'editor', 'tags', 'revisions'),
     'menu_icon' => VEHICLE_PLUGIN_URL . '/icon.png',
     'rewrite' => array(
       'slug' => 'vehicles',
